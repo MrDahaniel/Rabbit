@@ -1,0 +1,3 @@
+amqp==5.1.1
+certifi @ file:///croot/certifi_1665076670883/work/certifi
+vine==5.0.0
