@@ -6,7 +6,7 @@ amqp.connect("amqp://localhost:3030", (err, connection) => {
 	}
 	connection.createChannel((err, channel) => {
 		let queueName = "other-hello";
-		let mensaje = "cool";
+		let mensaje = "NodeJs!";
 
 		channel.assertQueue(queueName, {
 			durable: false,
