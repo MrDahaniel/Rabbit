@@ -47,6 +47,10 @@ cd express
 node publisher.js
 ```
 
+### Video Demostration
+
+[Video Here](https://www.youtube.com/watch?v=w3Vzd6n-CG0)
+
 ## Created by:
 
 -   Daniel Delgado
