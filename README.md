@@ -49,7 +49,7 @@ node publisher.js
 
 ### Video Demostration
 
-[Video Here](https://www.youtube.com/watch?v=w3Vzd6n-CG0)
+[Video Here](https://youtu.be/lFtrjKV56pU)
 
 ## Created by:
 

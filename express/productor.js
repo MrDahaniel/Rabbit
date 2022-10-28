@@ -1,19 +1,41 @@
-const amqp = require("amqplib/callback_api");
+var amqp = require('amqplib/callback_api');
 
-amqp.connect("amqp://localhost:3030", (err, connection) => {
-	if (err) {
-		throw err;
+amqp.connect('amqp://localhost:3030', function (error0, connection) {
+	if (error0) {
+		throw error0;
 	}
-	connection.createChannel((err, channel) => {
-		let queueName = "other-hello";
-		let mensaje = "NodeJs!";
 
-		channel.assertQueue(queueName, {
-			durable: false,
+	connection.createChannel(function (error1, channel) {
+		if (error1) {
+			throw error1;
+		}
+
+		var node_queue = 'node_queue';
+		var rust_queue = 'rs_queue';
+		var exchange = 'node_rust';
+
+		channel.assertExchange(exchange, 'fanout', {
+			durable: false
 		});
-		channel.sendToQueue(queueName, Buffer.from(mensaje));
-		setTimeout(() => {
-			connection.close();
-		}, 100);
+
+		channel.assertQueue(node_queue, {
+			durable: false
+		});
+		channel.assertQueue(rust_queue, {
+			durable: false
+		});
+
+		channel.bindQueue(node_queue, exchange, "");
+		channel.bindQueue(rust_queue, exchange, "");
+
+		var msg = 'Hello from node thing!';
+
+		channel.publish(exchange, '', Buffer.from(msg));
 	});
+
+	setTimeout(function () {
+		connection.close();
+		process.exit(0);
+	}, 500);
 });
+

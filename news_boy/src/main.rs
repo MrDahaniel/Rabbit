@@ -2,7 +2,7 @@ extern crate getopts;
 use getopts::Options;
 use lapin::{
     options::*, publisher_confirm::Confirmation, types::FieldTable, BasicProperties, Connection,
-    ConnectionProperties,
+    ConnectionProperties, ExchangeKind,
 };
 use tracing::info;
 
@@ -56,21 +56,64 @@ fn main() {
         info!("CONNECTED");
 
         {
-            //send channel
+            // send channel
             let channel_a = conn.create_channel().await.expect("create_channel");
 
-            //create the queue
-            let queue = channel_a
+            channel_a
+                .exchange_declare(
+                    "py_rust",
+                    ExchangeKind::Fanout,
+                    ExchangeDeclareOptions::default(),
+                    FieldTable::default(),
+                )
+                .await
+                .expect("exchange_declare");
+
+            // create the queues
+            let py_queue = channel_a
                 .queue_declare(
-                    "hello",
+                    "py_queue",
                     QueueDeclareOptions::default(),
                     FieldTable::default(),
                 )
                 .await
                 .expect("queue_declare");
 
-            info!(state=?conn.status().state());
-            info!(?queue, "Declared queue");
+            info!(?py_queue, "Declared queue");
+
+            let rust_queue = channel_a
+                .queue_declare(
+                    "rs_queue",
+                    QueueDeclareOptions::default(),
+                    FieldTable::default(),
+                )
+                .await
+                .expect("queue_declare");
+
+            info!(?rust_queue, "Declared queue");
+
+            // Binding the channels
+            channel_a
+                .queue_bind(
+                    "py_queue",
+                    "py_rust",
+                    "",
+                    QueueBindOptions::default(),
+                    FieldTable::default(),
+                )
+                .await
+                .expect("queue_bind");
+
+            channel_a
+                .queue_bind(
+                    "rs_queue",
+                    "py_rust",
+                    "",
+                    QueueBindOptions::default(),
+                    FieldTable::default(),
+                )
+                .await
+                .expect("queue_bind");
 
             let message = match matches.opt_str("m") {
                 Some(msg) => msg,
@@ -82,8 +125,8 @@ fn main() {
 
             let confirm = channel_a
                 .basic_publish(
+                    "py_rust",
                     "",
-                    "hello",
                     BasicPublishOptions::default(),
                     payload,
                     BasicProperties::default(),

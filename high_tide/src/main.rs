@@ -22,14 +22,13 @@ fn main() {
         {
             //receive channels
             let channel_a = conn.create_channel().await.expect("create_channel");
-            let channel_b = conn.create_channel().await.expect("create_channel");
             info!(state=?conn.status().state());
 
             info!("will consume");
 
             channel_a
                 .basic_consume(
-                    "other-hello",
+                    "rs_queue",
                     "my_consumer",
                     BasicConsumeOptions::default(),
                     FieldTable::default(),
@@ -37,31 +36,6 @@ fn main() {
                 .await
                 .expect("basic_consume")
                 .set_delegate(move |delivery: DeliveryResult| async move {
-                    if let Ok(Some(delivery)) = delivery {
-                        delivery
-                            .ack(BasicAckOptions::default())
-                            .await
-                            .expect("basic_ack");
-
-                        if delivery.data.is_ascii() {
-                            let data: String =
-                                delivery.data.into_iter().map(|x| x as char).collect();
-                            info!(message = data, "Message:");
-                        }
-                    }
-                });
-
-            channel_b
-                .basic_consume(
-                    "hello",
-                    "my_consumer",
-                    BasicConsumeOptions::default(),
-                    FieldTable::default(),
-                )
-                .await
-                .expect("basic_consume")
-                .set_delegate(move |delivery: DeliveryResult| async move {
-                    // info!(message=?delivery, "received message");
                     if let Ok(Some(delivery)) = delivery {
                         delivery
                             .ack(BasicAckOptions::default())
